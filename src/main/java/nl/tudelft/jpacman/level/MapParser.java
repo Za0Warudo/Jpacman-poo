@@ -10,7 +10,9 @@ import java.util.List;
 import nl.tudelft.jpacman.PacmanConfigurationException;
 import nl.tudelft.jpacman.board.Board;
 import nl.tudelft.jpacman.board.BoardFactory;
+import nl.tudelft.jpacman.board.CircuitIdentifier;
 import nl.tudelft.jpacman.board.Square;
+import nl.tudelft.jpacman.board.models.GateSquare;
 import nl.tudelft.jpacman.npc.Ghost;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -54,6 +56,10 @@ public class MapParser {
      * <li>'.' (period) a square with a pellet.
      * <li>'P' (capital P) a starting square for players.
      * <li>'G' (capital G) a square with a ghost.
+     * <li>'1' (one) a circuit 1 switch. 
+     * <li>'2' (two) a circuit 2 switch. 
+     * <li>'a' (lower a) a circuit 1 gate. 
+     * <li>'b' (lower b) a circuit 2 gate. 
      * </ul>
      *
      * @param map
@@ -69,19 +75,22 @@ public class MapParser {
 
         List<Ghost> ghosts = new ArrayList<>();
         List<Square> startPositions = new ArrayList<>();
+        List<Circuit> circuits = new ArrayList<>(); 
+        circuits.add(new Circuit(CircuitIdentifier.CIRCUIT_ONE)); 
+        circuits.add(new Circuit(CircuitIdentifier.CIRCUIT_TWO)); 
 
-        makeGrid(map, width, height, grid, ghosts, startPositions);
+        makeGrid(map, width, height, grid, ghosts, startPositions, circuits);
 
         Board board = boardCreator.createBoard(grid);
-        return levelCreator.createLevel(board, ghosts, startPositions);
+        return levelCreator.createLevel(board, ghosts, startPositions, circuits);
     }
 
     private void makeGrid(char[][] map, int width, int height,
-                          Square[][] grid, List<Ghost> ghosts, List<Square> startPositions) {
+                          Square[][] grid, List<Ghost> ghosts, List<Square> startPositions, List<Circuit> circuits) {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 char c = map[x][y];
-                addSquare(grid, ghosts, startPositions, x, y, c);
+                addSquare(grid, ghosts, startPositions, circuits, x, y, c);
             }
         }
     }
@@ -99,6 +108,8 @@ public class MapParser {
      * @param startPositions
      *            List of all start positions that were added
      *            to the map.
+     * @param circuits 
+     *          List of all circuits that were added to the map. 
      * @param x
      *            x coordinate of the square.
      * @param y
@@ -107,7 +118,7 @@ public class MapParser {
      *            Character describing the square type.
      */
     protected void addSquare(Square[][] grid, List<Ghost> ghosts,
-                             List<Square> startPositions, int x, int y, char c) {
+                             List<Square> startPositions, List<Circuit> circuits, int x, int y, char c) {
         switch (c) {
             case ' ':
                 grid[x][y] = boardCreator.createGround();
@@ -119,6 +130,24 @@ public class MapParser {
                 Square pelletSquare = boardCreator.createGround();
                 grid[x][y] = pelletSquare;
                 levelCreator.createPellet().occupy(pelletSquare);
+                break;
+            case '1':
+                Square switchOneSquare = boardCreator.createSwitch(CircuitIdentifier.CIRCUIT_ONE);
+                grid[x][y] = switchOneSquare; 
+                break; 
+            case '2': 
+                Square switchTwoSquare = boardCreator.createSwitch(CircuitIdentifier.CIRCUIT_TWO);
+                grid[x][y] = switchTwoSquare; 
+                break;
+            case 'a': 
+                Square gateOne = boardCreator.createGate(CircuitIdentifier.CIRCUIT_ONE); 
+                grid[x][y] = gateOne; 
+                circuits.get(0).addGate((GateSquare) gateOne);
+                break;
+            case 'b': 
+                Square gateTwo = boardCreator.createGate(CircuitIdentifier.CIRCUIT_TWO); 
+                grid[x][y] = gateTwo; 
+                circuits.get(1).addGate((GateSquare) gateTwo);
                 break;
             case 'G':
                 Square ghostSquare = makeGhostSquare(ghosts, levelCreator.createGhost());

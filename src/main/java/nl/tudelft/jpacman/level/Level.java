@@ -12,9 +12,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import nl.tudelft.jpacman.board.Board;
+import nl.tudelft.jpacman.board.CircuitIdentifier;
 import nl.tudelft.jpacman.board.Direction;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.board.Unit;
+import nl.tudelft.jpacman.board.models.GateSquare;
+import nl.tudelft.jpacman.board.models.SwitchSquare;
 import nl.tudelft.jpacman.npc.Ghost;
 
 /**
@@ -74,6 +77,11 @@ public class Level {
     private final CollisionMap collisions;
 
     /**
+     * The circuit list
+     */
+    private final List<Circuit> circuits;
+
+    /**
      * The objects observing this level.
      */
     private final Set<LevelObserver> observers;
@@ -91,10 +99,14 @@ public class Level {
      *            The collection of collisions that should be handled.
      */
     public Level(Board board, List<Ghost> ghosts, List<Square> startPositions,
-                 CollisionMap collisionMap) {
+                 CollisionMap collisionMap, List<Circuit> circuits) {
         assert board != null;
         assert ghosts != null;
         assert startPositions != null;
+        assert circuits != null; 
+        assert circuits.size() == 2; 
+        assert circuits.get(0).getIdentifier() == CircuitIdentifier.CIRCUIT_ONE;
+        assert circuits.get(1).getIdentifier() == CircuitIdentifier.CIRCUIT_TWO;
 
         this.board = board;
         this.inProgress = false;
@@ -106,6 +118,7 @@ public class Level {
         this.startSquareIndex = 0;
         this.players = new ArrayList<>();
         this.collisions = collisionMap;
+        this.circuits = circuits; 
         this.observers = new HashSet<>();
     }
 
@@ -186,6 +199,14 @@ public class Level {
             if (destination.isAccessibleTo(unit)) {
                 List<Unit> occupants = destination.getOccupants();
                 unit.occupy(destination);
+                if (location instanceof GateSquare) {
+                    ((GateSquare)location).occupantLeft(); 
+                }
+
+                if (unit instanceof Player && destination instanceof SwitchSquare) {
+                   activateSwitch((SwitchSquare) destination);
+                }
+
                 for (Unit occupant : occupants) {
                     collisions.collide(unit, occupant);
                 }
@@ -193,6 +214,28 @@ public class Level {
             updateObservers();
         }
     }
+
+    /**
+     * Activates a switch in the given square switch. 
+     * @param switchSquare 
+     *             The square switch. 
+     */             
+    private void activateSwitch(SwitchSquare switchSquare) {
+    Circuit circuit; 
+    if (switchSquare.getIdentifier() == CircuitIdentifier.CIRCUIT_ONE) { 
+        circuit = circuits.get(0);
+    }
+    else {
+        circuit = circuits.get(1);
+    }
+
+    if (circuit == null) {
+        throw new IllegalStateException(
+            "No circuit registered for " + switchSquare.getIdentifier());
+    }
+
+    circuit.toggle();
+}
 
     /**
      * Starts or resumes this level, allowing movement and (re)starting the

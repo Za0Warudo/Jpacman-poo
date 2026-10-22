@@ -127,10 +127,31 @@ public class PacManSprites extends SpriteStore {
     }
 
     /**
-     * @return The sprite for the
+     * @return The sprite for the pellet.
      */
     public Sprite getPelletSprite() {
         return loadSprite("/sprite/pellet.png");
+    }
+    
+    /**
+     * @return The sprite for the switch. 
+     */
+    public Sprite getSwitchSprite() {
+        return loadSprite("/sprite/key.png"); 
+    }
+
+    /**
+     * @return The sprite for the open gate. 
+     */
+    public Sprite getOpenGateSprite() {
+        return loadSprite("/sprite/floor.png"); 
+    }
+
+    /**
+     * @return The sprite for the close gate. 
+     */
+    public Sprite getCloseGateSprite() {
+        return loadSprite("/sprite/wall.png"); 
     }
 
     /**
