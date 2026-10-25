@@ -13,6 +13,7 @@ import nl.tudelft.jpacman.board.BoardFactory;
 import nl.tudelft.jpacman.board.CircuitIdentifier;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.board.models.GateSquare;
+import nl.tudelft.jpacman.board.models.PulseSquare;
 import nl.tudelft.jpacman.npc.Ghost;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -60,6 +61,8 @@ public class MapParser {
      * <li>'2' (two) a circuit 2 switch. 
      * <li>'a' (lower a) a circuit 1 gate. 
      * <li>'b' (lower b) a circuit 2 gate. 
+     * <li>'!' (exclamation) a circuit 1 pulse.
+     * <li>'?' (interrogation) a circuit 2 pulse.  
      * </ul>
      *
      * @param map
@@ -152,6 +155,16 @@ public class MapParser {
             case 'G':
                 Square ghostSquare = makeGhostSquare(ghosts, levelCreator.createGhost());
                 grid[x][y] = ghostSquare;
+                break;
+            case '!': 
+                Square pulseOne = boardCreator.createPulse(CircuitIdentifier.CIRCUIT_ONE);
+                grid[x][y] = pulseOne; 
+                circuits.get(0).addPulse((PulseSquare) pulseOne);
+                break; 
+            case '?': 
+                Square pulseTwo = boardCreator.createPulse(CircuitIdentifier.CIRCUIT_TWO);
+                grid[x][y] = pulseTwo; 
+                circuits.get(1).addPulse((PulseSquare) pulseTwo);
                 break;
             case 'P':
                 Square playerSquare = boardCreator.createGround();

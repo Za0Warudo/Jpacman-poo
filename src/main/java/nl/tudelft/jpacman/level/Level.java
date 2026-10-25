@@ -17,6 +17,7 @@ import nl.tudelft.jpacman.board.Direction;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.board.Unit;
 import nl.tudelft.jpacman.board.models.GateSquare;
+import nl.tudelft.jpacman.board.models.PulseSquare;
 import nl.tudelft.jpacman.board.models.SwitchSquare;
 import nl.tudelft.jpacman.npc.Ghost;
 
@@ -207,12 +208,22 @@ public class Level {
                    activateSwitch((SwitchSquare) destination);
                 }
 
+                if (unit instanceof Player && destination instanceof PulseSquare && ((PulseSquare) destination).isAvailable()) {
+                    collectPulse(((PulseSquare) destination)); 
+
+                }
+
                 for (Unit occupant : occupants) {
                     collisions.collide(unit, occupant);
                 }
             }
             updateObservers();
         }
+    }
+    
+    private Circuit getCircuit(CircuitIdentifier cidIdentifier) { 
+        if (cidIdentifier == CircuitIdentifier.CIRCUIT_ONE) return circuits.get(0); 
+        return circuits.get(1); 
     }
 
     /**
@@ -221,21 +232,26 @@ public class Level {
      *             The square switch. 
      */             
     private void activateSwitch(SwitchSquare switchSquare) {
-    Circuit circuit; 
-    if (switchSquare.getIdentifier() == CircuitIdentifier.CIRCUIT_ONE) { 
-        circuit = circuits.get(0);
-    }
-    else {
-        circuit = circuits.get(1);
+        Circuit circuit = getCircuit(switchSquare.getIdentifier()); 
+
+        if (circuit == null) {
+            throw new IllegalStateException(
+                "No circuit registered for " + switchSquare.getIdentifier());
+        }
+
+        circuit.toggle();
     }
 
-    if (circuit == null) {
-        throw new IllegalStateException(
-            "No circuit registered for " + switchSquare.getIdentifier());
-    }
+    private void collectPulse(PulseSquare pulseSquare) {
+        Circuit circuit = getCircuit(pulseSquare.getIdentifier()); 
+        
+        if (circuit == null) {
+            throw new IllegalStateException(
+                "No circuit registered for " + pulseSquare.getIdentifier());
+        }
 
-    circuit.toggle();
-}
+        circuit.collectPulse(pulseSquare); 
+    }
 
     /**
      * Starts or resumes this level, allowing movement and (re)starting the
@@ -247,6 +263,9 @@ public class Level {
                 return;
             }
             startNPCs();
+            for (Circuit circuit: circuits) {
+                circuit.resume();
+            }
             inProgress = true;
             updateObservers();
         }
@@ -262,6 +281,10 @@ public class Level {
                 return;
             }
             stopNPCs();
+            for (Circuit circuit: circuits) {
+                if (circuit.isReverse()) 
+                        circuit.pause();
+            }
             inProgress = false;
         }
     }

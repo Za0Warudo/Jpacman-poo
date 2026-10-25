@@ -1,6 +1,7 @@
 package nl.tudelft.jpacman.board;
 
 import nl.tudelft.jpacman.board.models.GateSquare;
+import nl.tudelft.jpacman.board.models.PulseSquare;
 import nl.tudelft.jpacman.board.models.SwitchSquare;
 import nl.tudelft.jpacman.sprite.PacManSprites;
 import nl.tudelft.jpacman.sprite.Sprite;
@@ -91,11 +92,21 @@ public class BoardFactory {
      * Creates a new square that is a gate. 
      * @param cIdentifier
      *          The gate circuit identifier. 
-     * @return A new sqaure that is a gate. 
+     * @return A new square that is a gate. 
      */    
     public Square createGate(CircuitIdentifier cIdentifier) {
         return new GateSquare(sprites.getOpenGateSprite(), sprites.getCloseGateSprite(), cIdentifier); 
     }  
+
+    /**
+     * Create a new square that is a pulse. 
+     * @param cIdentifier
+     *          The pulse circuit identifier. 
+     * @return A new square that is a pulse. 
+     */
+    public Square createPulse(CircuitIdentifier cIdentifier) {
+        return new PulseSquare(sprites.getAvailablePulseSprite(), sprites.getCollectedPulseSprite(), cIdentifier);
+    }
 
     /**
      * A wall is a square that is inaccessible to anyone.
