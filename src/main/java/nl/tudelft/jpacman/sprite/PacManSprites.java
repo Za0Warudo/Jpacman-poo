@@ -148,6 +148,13 @@ public class PacManSprites extends SpriteStore {
     }
 
     /**
+     * @return The sprite for closing gate. 
+     */
+    public Sprite getClosingSprite() {
+        return loadSprite("/sprite/floor.png");
+    }
+
+    /**
      * @return The sprite for the close gate. 
      */
     public Sprite getCloseGateSprite() {

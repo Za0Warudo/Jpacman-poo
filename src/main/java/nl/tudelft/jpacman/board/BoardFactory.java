@@ -1,7 +1,10 @@
 package nl.tudelft.jpacman.board;
 
+import java.awt.Color;
+
 import nl.tudelft.jpacman.board.models.GateSquare;
 import nl.tudelft.jpacman.board.models.SwitchSquare;
+import nl.tudelft.jpacman.sprite.MarkedSprite;
 import nl.tudelft.jpacman.sprite.PacManSprites;
 import nl.tudelft.jpacman.sprite.Sprite;
 
@@ -76,26 +79,77 @@ public class BoardFactory {
     public Square createWall() {
         return new Wall(sprites.getWallSprite());
     }
+
     
-   /**
-    * Creates a new square that is a switch button for the player of the given circuit identifier.
-    * @param cIdentifier
-    *           The switch circuit identifier. 
-    * @return A new square that is a switch button for the player.
-    */
-    public Square createSwitch(CircuitIdentifier cIdentifier) {
-        return new SwitchSquare(sprites.getSwitchSprite(), cIdentifier);
+    /**
+     * Creates a new switch square for circuit one.
+     *
+     * @return A new switch square for circuit one.
+     */
+    private SwitchSquare createSwitchSquareOne() {
+        Sprite sprite = new MarkedSprite(
+            sprites.getSwitchSprite(), Color.RED, "1");
+        return new SwitchSquare(sprite, CircuitIdentifier.CIRCUIT_ONE);
     }
 
     /**
-     * Creates a new square that is a gate. 
-     * @param cIdentifier
-     *          The gate circuit identifier. 
-     * @return A new sqaure that is a gate. 
-     */    
+     * Creates a new switch square for circuit two.
+     *
+     * @return A new switch square for circuit two.
+     */
+    private SwitchSquare createSwitchSquareTwo() {
+        Sprite sprite = new MarkedSprite(
+            sprites.getSwitchSprite(), Color.GREEN, "2");
+        return new SwitchSquare(sprite, CircuitIdentifier.CIRCUIT_TWO);
+    }
+
+    /**
+     * Creates a switch square for the specified circuit.
+     *
+     * @param cIdentifier The switch circuit identifier.
+     * @return A new switch square for the specified circuit.
+     */
+    public Square createSwitch(CircuitIdentifier cIdentifier) {
+        if (cIdentifier == CircuitIdentifier.CIRCUIT_ONE) {
+            return createSwitchSquareOne();
+        }
+        if (cIdentifier == CircuitIdentifier.CIRCUIT_TWO) {
+            return createSwitchSquareTwo();
+        }
+        throw new IllegalArgumentException("Unknown circuit: " + cIdentifier);
+    }
+
+    /**
+     * Creates a gate square for the specified circuit.
+     *
+     * @param cIdentifier The gate circuit identifier.
+     * @return A new gate square for the specified circuit.
+     */
     public Square createGate(CircuitIdentifier cIdentifier) {
-        return new GateSquare(sprites.getOpenGateSprite(), sprites.getCloseGateSprite(), cIdentifier); 
-    }  
+        Sprite openSprite = sprites.getOpenGateSprite();
+
+        if (cIdentifier == CircuitIdentifier.CIRCUIT_ONE) {
+            Sprite closedSprite = new MarkedSprite(
+                sprites.getCloseGateSprite(), Color.RED, "1");
+            Sprite closingStateSprite = new MarkedSprite(
+                sprites.getCloseGateSprite(), Color.WHITE, "P");
+
+            return new GateSquare(
+                openSprite, closedSprite, closingStateSprite, cIdentifier);
+        }
+
+        if (cIdentifier == CircuitIdentifier.CIRCUIT_TWO) {
+            Sprite closedSprite = new MarkedSprite(
+                sprites.getCloseGateSprite(), Color.GREEN, "2");
+            Sprite closingStateSprite = new MarkedSprite(
+                sprites.getCloseGateSprite(), Color.WHITE, "P");
+
+            return new GateSquare(
+                openSprite, closedSprite, closingStateSprite, cIdentifier);
+        }
+
+        throw new IllegalArgumentException("Unknown circuit: " + cIdentifier);
+    }
 
     /**
      * A wall is a square that is inaccessible to anyone.

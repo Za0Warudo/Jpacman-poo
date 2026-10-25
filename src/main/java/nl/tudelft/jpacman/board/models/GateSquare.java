@@ -15,6 +15,11 @@ public class GateSquare extends Square {
     * The open background for this square.
     */
     private final Sprite openBackground;
+
+    /**
+     * The closing background for this square. 
+     */
+    private final Sprite closingBackground; 
     
     /**
     * The open background for this square.
@@ -40,9 +45,10 @@ public class GateSquare extends Square {
      * @param closeSprite
      *            The background for the close gate square.
      */
-    public GateSquare(Sprite openSprite, Sprite closeSprite, CircuitIdentifier cIdentifier) {
+    public GateSquare(Sprite openSprite, Sprite closeSprite, Sprite closingSprite, CircuitIdentifier cIdentifier) {
         this.openBackground = openSprite;
         this.closeBackground = closeSprite; 
+        this.closingBackground = closingSprite; 
         this.identifier = cIdentifier; 
         this.state = GateState.CLOSED; 
     } 
@@ -95,6 +101,7 @@ public class GateSquare extends Square {
     @Override
     public Sprite getSprite() {
         if (state == GateState.CLOSED) return this.closeBackground; 
+        else if (state == GateState.CLOSE_PENDING) return this.closingBackground;
         return this.openBackground;
     }
 }

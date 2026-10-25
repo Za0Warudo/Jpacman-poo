@@ -13,6 +13,7 @@ import nl.tudelft.jpacman.board.BoardFactory;
 import nl.tudelft.jpacman.board.CircuitIdentifier;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.board.models.GateSquare;
+import nl.tudelft.jpacman.board.models.SwitchSquare;
 import nl.tudelft.jpacman.npc.Ghost;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -134,10 +135,12 @@ public class MapParser {
             case '1':
                 Square switchOneSquare = boardCreator.createSwitch(CircuitIdentifier.CIRCUIT_ONE);
                 grid[x][y] = switchOneSquare; 
+                circuits.get(0).addSwitch((SwitchSquare) switchOneSquare);
                 break; 
             case '2': 
                 Square switchTwoSquare = boardCreator.createSwitch(CircuitIdentifier.CIRCUIT_TWO);
                 grid[x][y] = switchTwoSquare; 
+                circuits.get(1).addSwitch((SwitchSquare) switchTwoSquare);
                 break;
             case 'a': 
                 Square gateOne = boardCreator.createGate(CircuitIdentifier.CIRCUIT_ONE); 
