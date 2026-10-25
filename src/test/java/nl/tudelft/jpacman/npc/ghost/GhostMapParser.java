@@ -2,6 +2,7 @@ package nl.tudelft.jpacman.npc.ghost;
 
 import nl.tudelft.jpacman.board.BoardFactory;
 import nl.tudelft.jpacman.board.Square;
+import nl.tudelft.jpacman.level.Circuit;
 import nl.tudelft.jpacman.level.LevelFactory;
 import nl.tudelft.jpacman.level.MapParser;
 import nl.tudelft.jpacman.npc.Ghost;
@@ -35,13 +36,13 @@ public final class GhostMapParser extends MapParser {
     //You should add extra cases for ghosts you need.
     @Override
     protected void addSquare(Square[][] grid, List<Ghost> ghosts,
-                             List<Square> startPositions, int x, int y, char c) {
+                             List<Square> startPositions, List<Circuit> circuits, int x, int y, char c) {
         switch (c) {
             case 'C':
                 grid[x][y] = makeGhostSquare(ghosts, ghostFactory.createClyde());
                 break;
             default:
-                super.addSquare(grid, ghosts, startPositions, x, y, c);
+                super.addSquare(grid, ghosts, startPositions, circuits, x, y, c);
         }
     }
 }
