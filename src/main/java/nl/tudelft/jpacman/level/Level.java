@@ -105,10 +105,19 @@ public class Level {
         assert ghosts != null;
         assert startPositions != null;
         assert circuits != null; 
-        assert circuits.size() == 2; 
-        assert circuits.get(0).getIdentifier() == CircuitIdentifier.CIRCUIT_ONE;
-        assert circuits.get(1).getIdentifier() == CircuitIdentifier.CIRCUIT_TWO;
+        assert circuits.size() == 2;
+        
+        Circuit circuitOne = circuits.get(0); 
+        Circuit circuitTwo = circuits.get(1);
 
+        assert circuitOne.getIdentifier() == CircuitIdentifier.CIRCUIT_ONE; 
+        assert circuitTwo.getIdentifier() == CircuitIdentifier.CIRCUIT_TWO; 
+
+        if (!circuitOne.isValid() || !circuitTwo.isValid()) {
+            throw new IllegalArgumentException(
+                "Each circuit must have at least one gate and one switch.");
+        }
+        
         this.board = board;
         this.inProgress = false;
         this.npcs = new HashMap<>();

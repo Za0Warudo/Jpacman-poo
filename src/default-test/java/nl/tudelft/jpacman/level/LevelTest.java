@@ -9,10 +9,10 @@ import static org.mockito.Mockito.when;
 import nl.tudelft.jpacman.board.Board;
 import nl.tudelft.jpacman.board.Square;
 import nl.tudelft.jpacman.npc.Ghost;
-
 import com.google.common.collect.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import nl.tudelft.jpacman.board.CircuitIdentifier;
 
 /**
  * Tests various aspects of level.
@@ -53,6 +53,7 @@ class LevelTest {
      */
     private final CollisionMap collisions = mock(CollisionMap.class);
 
+
     /**
      * Sets up the level with the default board, a single NPC and a starting
      * square.
@@ -60,8 +61,25 @@ class LevelTest {
     @BeforeEach
     void setUp() {
         final long defaultInterval = 100L;
-        level = new Level(board, Lists.newArrayList(ghost), Lists.newArrayList(
-            square1, square2), collisions);
+
+        // Create one circuit for each identifier.
+        Circuit circuitOne = new Circuit(
+            CircuitIdentifier.CIRCUIT_ONE
+        );
+
+        Circuit circuitTwo = new Circuit(
+            CircuitIdentifier.CIRCUIT_TWO
+        );
+
+        // Give Level the circuits it needs.
+        level = new Level(
+            board,
+            Lists.newArrayList(ghost),
+            Lists.newArrayList(square1, square2),
+            collisions,
+            Lists.newArrayList(circuitOne, circuitTwo)
+        );
+
         when(ghost.getInterval()).thenReturn(defaultInterval);
     }
 

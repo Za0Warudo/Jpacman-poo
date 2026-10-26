@@ -11,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import nl.tudelft.jpacman.board.CircuitIdentifier;
 import nl.tudelft.jpacman.board.models.GateSquare;
 import nl.tudelft.jpacman.board.models.PulseSquare;
+import nl.tudelft.jpacman.board.models.SwitchSquare;
 
 public class Circuit {
 
@@ -30,6 +31,11 @@ public class Circuit {
      * Circuit pulses list. 
      */
     private final List<PulseSquare> pulses; 
+    
+    /**
+     * Circuit switch list. 
+     */
+    private final List<SwitchSquare> switchs; 
     
     /**
      * Current circuit state. 
@@ -67,12 +73,16 @@ public class Circuit {
      *          Circuit identifier. 
      */
     public Circuit(CircuitIdentifier ciIdentifier) {
-        this.gates = new ArrayList<GateSquare>();
-        this.pulses = new ArrayList<PulseSquare>();  
+        this.gates = new ArrayList<GateSquare>(); 
+        this.switchs = new ArrayList<SwitchSquare>();
+        this.pulses = new ArrayList<PulseSquare>();
         this.identifier = ciIdentifier; 
         this.state = CircuitState.CLOSED;  
         this.isReverse = false;
         this.isPaused = false;
+        this.timer = null; 
+        this.endTimeMs = 0; 
+        this.remainingMs = 0; 
     }
 
     private CircuitState getState() {
@@ -80,6 +90,9 @@ public class Circuit {
         return this.state; 
     }
     
+    /**
+     * @return The circuit identifier. 
+     */
     public CircuitIdentifier getIdentifier() {
         return this.identifier; 
     }
@@ -88,8 +101,31 @@ public class Circuit {
         return this.isReverse;
     }
 
-    public void addGate(GateSquare gate) {
-        this.gates.add(gate);
+    /**
+     * @return If the circuit is a valid circuit (i.e it is a null circuit or has at least a gate and a switch). 
+     */
+    public boolean isValid() {
+        int gatesSize = this.gates.size(); 
+        int switchsSize = this.switchs.size(); 
+        return (gatesSize == 0 && switchsSize == 0) || (gatesSize > 0 && switchsSize > 0);  
+    } 
+
+    /**
+     * Add the given gate into the circuit. 
+     * @param gate 
+     *          The gate to add into the circuit. 
+     */
+    public void addGate(GateSquare gateSquare) {
+        this.gates.add(gateSquare);
+    }
+
+    /**
+     * Add the given switch into the circuit. 
+     * @param switch
+     *          The switch to add into the circuit. 
+     */
+    public void addSwitch(SwitchSquare switchSquare) {
+        this.switchs.add(switchSquare); 
     }
 
     public void addPulse(PulseSquare pulse) { 
@@ -202,7 +238,7 @@ public class Circuit {
 
 
     /**
-     * Circuit states enum. 
+     * Circuit states list. 
      */
     enum CircuitState {
         /**
@@ -211,7 +247,7 @@ public class Circuit {
         OPEN,
 
         /**
-         * Close state. 
+         * Closed state. 
          */
         CLOSED
     }
