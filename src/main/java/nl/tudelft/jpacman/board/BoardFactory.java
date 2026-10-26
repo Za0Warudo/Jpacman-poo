@@ -3,6 +3,7 @@ package nl.tudelft.jpacman.board;
 import java.awt.Color;
 
 import nl.tudelft.jpacman.board.models.GateSquare;
+import nl.tudelft.jpacman.board.models.PulseSquare;
 import nl.tudelft.jpacman.board.models.SwitchSquare;
 import nl.tudelft.jpacman.sprite.MarkedSprite;
 import nl.tudelft.jpacman.sprite.PacManSprites;
@@ -148,6 +149,27 @@ public class BoardFactory {
                 openSprite, closedSprite, closingStateSprite, cIdentifier);
         }
 
+        throw new IllegalArgumentException("Unknown circuit: " + cIdentifier);
+    }
+
+    /**
+     * Create a new square that is a pulse. 
+     * @param cIdentifier
+     *          The pulse circuit identifier. 
+     * @return A new square that is a pulse. 
+     */
+    public Square createPulse(CircuitIdentifier cIdentifier) {        
+        if (cIdentifier == CircuitIdentifier.CIRCUIT_ONE) {
+            Sprite aSprite = new MarkedSprite(sprites.getAvailablePulseSprite(), Color.RED, "1");
+            Sprite cSprite = sprites.getCollectedPulseSprite();
+            return new PulseSquare(aSprite, cSprite , cIdentifier);
+        }
+        if (cIdentifier == CircuitIdentifier.CIRCUIT_TWO) { 
+            Sprite aSprite = new MarkedSprite(sprites.getAvailablePulseSprite(), Color.GREEN, "1");
+            Sprite cSprite = sprites.getCollectedPulseSprite();
+            return new PulseSquare(aSprite, cSprite , cIdentifier);
+        }
+    
         throw new IllegalArgumentException("Unknown circuit: " + cIdentifier);
     }
 
