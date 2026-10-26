@@ -184,6 +184,15 @@ public class Level {
     }
 
     /**
+     * Returns the circuits of this level. 
+     * 
+     * @return The circuits of this level. 
+     */
+    public List<Circuit> getCircuits() {
+        return circuits;
+    }
+
+    /**
      * Moves the unit into the given direction if possible and handles all
      * collisions.
      *

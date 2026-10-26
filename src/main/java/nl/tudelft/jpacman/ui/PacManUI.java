@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
@@ -52,6 +53,11 @@ public class PacManUI extends JFrame {
     private final BoardPanel boardPanel;
 
     /**
+     * The panel displaying active circuit pulse timers.
+     */
+    private final CircuitTimerPanel circuitTimerPanel;
+
+    /**
      * Creates a new UI for a JPacman game.
      *
      * @param game
@@ -80,6 +86,7 @@ public class PacManUI extends JFrame {
 
         JPanel buttonPanel = new ButtonPanel(buttons, this);
 
+                
         scorePanel = new ScorePanel(game.getPlayers());
         if (scoreFormatter != null) {
             scorePanel.setScoreFormatter(scoreFormatter);
@@ -87,12 +94,24 @@ public class PacManUI extends JFrame {
 
         boardPanel = new BoardPanel(game);
 
+        // Create the circuit timer panel.
+        circuitTimerPanel =
+            new CircuitTimerPanel(game.getLevel().getCircuits());
+
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(
+            new BoxLayout(headerPanel, BoxLayout.Y_AXIS)
+        );
+
+        headerPanel.add(scorePanel);
+        headerPanel.add(circuitTimerPanel);
+
         Container contentPanel = getContentPane();
         contentPanel.setLayout(new BorderLayout());
-        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
-        contentPanel.add(scorePanel, BorderLayout.NORTH);
-        contentPanel.add(boardPanel, BorderLayout.CENTER);
 
+        contentPanel.add(headerPanel, BorderLayout.NORTH);
+        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
+        contentPanel.add(boardPanel, BorderLayout.CENTER);
         pack();
     }
 

@@ -107,7 +107,8 @@ public class Circuit {
     public boolean isValid() {
         int gatesSize = this.gates.size(); 
         int switchsSize = this.switchs.size(); 
-        return (gatesSize == 0 && switchsSize == 0) || (gatesSize > 0 && switchsSize > 0);  
+        int pulsesSize = this.pulses.size(); 
+        return (gatesSize == 0 && switchsSize == 0 && pulsesSize == 0) || (gatesSize > 0 && switchsSize > 0);  
     } 
 
     /**
@@ -236,6 +237,32 @@ public class Circuit {
         }
     }
 
+    /**
+     * Returns the remaining pulse duration in seconds.
+     *
+     * @return The remaining time rounded up to whole seconds,
+     *         or 0 when no pulse countdown is active.
+     */
+    public synchronized int getRemainingSeconds() {
+        if (!isReverse) {
+            return 0;
+        }
+
+        long remaining;
+
+        if (isPaused) {
+            remaining = remainingMs;
+        } else if (timer != null && !timer.isDone()) {
+            remaining = Math.max(
+                0L,
+                endTimeMs - System.currentTimeMillis()
+            );
+        } else {
+            return 0;
+        }
+
+        return (int) ((remaining + 999L) / 1000L);
+    }
 
     /**
      * Circuit states list. 
