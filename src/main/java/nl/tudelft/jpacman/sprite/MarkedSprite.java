@@ -4,7 +4,13 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.FontMetrics;
 
+/**
+ * A sprite with a colored marker and text label overlaid on its base sprite.
+ */
 public final class MarkedSprite implements Sprite {
+
+    private static final int MARKER_SIZE_DIVISOR = 4;
+    private static final int MARKER_MARGIN_DIVISOR = 20;
 
     /**
      * Base sprite.
@@ -22,10 +28,14 @@ public final class MarkedSprite implements Sprite {
     private final String label;
 
     /**
-     * A new Srite with a color and label overlay. 
+     * Creates a sprite with a color and label overlay.
+     *
      * @param base
+     *            The sprite to draw beneath the marker.
      * @param markerColor
+     *            The marker fill color.
      * @param label
+     *            The text to draw on the marker.
      */
     public MarkedSprite(Sprite base, Color markerColor, String label) {
         this.base = base;
@@ -40,11 +50,11 @@ public final class MarkedSprite implements Sprite {
         base.draw(graphics, x, y, width, height);
 
         // Scale the marker proportionally to the tile.
-        int markerWidth = Math.max(1, width / 4);
-        int markerHeight = Math.max(1, height / 4);
+        int markerWidth = Math.max(1, width / MARKER_SIZE_DIVISOR);
+        int markerHeight = Math.max(1, height / MARKER_SIZE_DIVISOR);
 
-        int marginX = width / 20;
-        int marginY = height / 20;
+        int marginX = width / MARKER_MARGIN_DIVISOR;
+        int marginY = height / MARKER_MARGIN_DIVISOR;
 
         int markerX = x + marginX;
         int markerY = y + marginY;

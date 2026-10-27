@@ -44,8 +44,18 @@ public class GateSquare extends Square {
      * 
      * @param closeSprite
      *            The background for the close gate square.
+     * 
+     * @param closingSprite
+     *            The background for the closing gate square.
+     * 
+     * @param cIdentifier
+     *            The circuit identifier. 
      */
-    public GateSquare(Sprite openSprite, Sprite closeSprite, Sprite closingSprite, CircuitIdentifier cIdentifier) {
+    public GateSquare(Sprite openSprite, 
+        Sprite closeSprite,
+        Sprite closingSprite, 
+        CircuitIdentifier cIdentifier
+    ) {
         this.openBackground = openSprite;
         this.closeBackground = closeSprite; 
         this.closingBackground = closingSprite; 
@@ -71,7 +81,7 @@ public class GateSquare extends Square {
     * Open the gate. 
     */
     public void requestOpen() { 
-    this.state = GateState.OPEN; 
+        this.state = GateState.OPEN; 
     }
 
     /**
@@ -86,12 +96,15 @@ public class GateSquare extends Square {
         }  
     }
 
+    /**
+     * Updates gate state if no occupant is left.
+     */
     public void occupantLeft() {
-    if (state == GateState.CLOSE_PENDING
-            && getOccupants().isEmpty()) {
-        state = GateState.CLOSED;
+        if (state == GateState.CLOSE_PENDING
+                && getOccupants().isEmpty()) {
+            state = GateState.CLOSED;
+        }
     }
-}
     
     @Override
     public boolean isAccessibleTo(Unit unit) {
@@ -100,8 +113,11 @@ public class GateSquare extends Square {
 
     @Override
     public Sprite getSprite() {
-        if (state == GateState.CLOSED) return this.closeBackground; 
-        else if (state == GateState.CLOSE_PENDING) return this.closingBackground;
+        if (state == GateState.CLOSED) {
+            return this.closeBackground;
+        } else if (state == GateState.CLOSE_PENDING) {
+            return this.closingBackground;
+        }
         return this.openBackground;
     }
 }

@@ -25,6 +25,8 @@ public class SwitchSquare extends Square {
      *
      * @param sprite
      *            The background for the square.
+     * @param cIdentifier
+     *            The circuit idenfier. 
      */
     public SwitchSquare(Sprite sprite, CircuitIdentifier cIdentifier) {
         this.background = sprite;

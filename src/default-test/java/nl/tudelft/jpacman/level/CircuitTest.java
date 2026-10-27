@@ -22,7 +22,49 @@ import org.junit.jupiter.api.Test;
  */
 class CircuitTest {
 
-    /** The circuit under test. */
+    /**
+     * Pulse duration in seconds.
+     */
+    private static final int PULSE_DURATION_SECONDS = 5;
+
+    /**
+     * Minimum remaining seconds for a pulse.
+     */
+    private static final int MIN_REMAINING_SECONDS = 1;
+
+    /**
+     * Intermediate threshold for remaining seconds test assertions.
+     */
+    private static final int MID_REMAINING_SECONDS = 4;
+
+    /**
+     * Long thread sleep duration in milliseconds.
+     */
+    private static final long SLEEP_DURATION_LONG = 1_200L;
+
+    /**
+     * Short thread sleep duration in milliseconds.
+     */
+    private static final long SLEEP_DURATION_SHORT = 1_100L;
+
+    /**
+     * Maximum wait timeout in milliseconds for pulse expiration.
+     */
+    private static final long WAIT_TIMEOUT_MS = 6_500L;
+
+    /**
+     * Timeout in milliseconds for Mockito verify assertion.
+     */
+    private static final long VERIFY_TIMEOUT_MS = 500L;
+
+    /**
+     * Polling interval in milliseconds for pulse state checking.
+     */
+    private static final long POLL_INTERVAL_MS = 25L;
+
+    /**
+     * The circuit under test.
+     */
     private Circuit circuit;
 
     /**
@@ -41,23 +83,35 @@ class CircuitTest {
         circuit.stop();
     }
 
+    /**
+     * Verifies that getIdentifier returns the identifier passed to the constructor.
+     */
     @Test
     void getIdentifierReturnsTheIdentifierPassedToTheConstructor() {
         assertThat(circuit.getIdentifier())
             .isEqualTo(CircuitIdentifier.CIRCUIT_ONE);
     }
 
+    /**
+     * Verifies that a newly created circuit is not reversed and has zero countdown.
+     */
     @Test
     void circuitIsNotReversedAndHasNoCountdownInitially() {
         assertThat(circuit.isReverse()).isFalse();
         assertThat(circuit.getRemainingSeconds()).isZero();
     }
 
+    /**
+     * Verifies that an empty circuit is valid according to current implementation.
+     */
     @Test
     void emptyCircuitIsValidAccordingToCurrentImplementation() {
         assertThat(circuit.isValid()).isTrue();
     }
 
+    /**
+     * Verifies that a circuit with only a gate is invalid.
+     */
     @Test
     void circuitWithOnlyAGateIsInvalid() {
         circuit.addGate(mock(GateSquare.class));
@@ -65,6 +119,9 @@ class CircuitTest {
         assertThat(circuit.isValid()).isFalse();
     }
 
+    /**
+     * Verifies that a circuit with only a switch is invalid.
+     */
     @Test
     void circuitWithOnlyASwitchIsInvalid() {
         circuit.addSwitch(mock(SwitchSquare.class));
@@ -72,6 +129,9 @@ class CircuitTest {
         assertThat(circuit.isValid()).isFalse();
     }
 
+    /**
+     * Verifies that a circuit with only a pulse is invalid.
+     */
     @Test
     void circuitWithOnlyAPulseIsInvalid() {
         circuit.addPulse(mock(PulseSquare.class));
@@ -79,6 +139,9 @@ class CircuitTest {
         assertThat(circuit.isValid()).isFalse();
     }
 
+    /**
+     * Verifies that a circuit with at least one gate and one switch is valid.
+     */
     @Test
     void circuitWithAtLeastOneGateAndOneSwitchIsValid() {
         circuit.addGate(mock(GateSquare.class));
@@ -87,6 +150,9 @@ class CircuitTest {
         assertThat(circuit.isValid()).isTrue();
     }
 
+    /**
+     * Verifies that adding multiple gates and switches keeps the circuit valid.
+     */
     @Test
     void addingMoreGatesAndSwitchesKeepsCircuitValid() {
         circuit.addGate(mock(GateSquare.class));
@@ -97,6 +163,9 @@ class CircuitTest {
         assertThat(circuit.isValid()).isTrue();
     }
 
+    /**
+     * Verifies that a circuit containing a gate, switch, and pulse is valid.
+     */
     @Test
     void circuitWithGateSwitchAndPulseIsValid() {
         circuit.addGate(mock(GateSquare.class));
@@ -106,6 +175,9 @@ class CircuitTest {
         assertThat(circuit.isValid()).isTrue();
     }
 
+    /**
+     * Verifies that toggling the circuit for the first time requests all gates to open.
+     */
     @Test
     void firstToggleRequestsAllGatesToOpen() {
         GateSquare firstGate = mock(GateSquare.class);
@@ -121,6 +193,9 @@ class CircuitTest {
         verify(secondGate, never()).requestClose();
     }
 
+    /**
+     * Verifies that toggling the circuit a second time requests all gates to close.
+     */
     @Test
     void secondToggleRequestsAllGatesToClose() {
         GateSquare firstGate = mock(GateSquare.class);
@@ -137,6 +212,9 @@ class CircuitTest {
         verify(secondGate, times(1)).requestClose();
     }
 
+    /**
+     * Verifies that toggling one circuit does not control another circuit's gates.
+     */
     @Test
     void togglingOneCircuitDoesNotCommandAnotherCircuitsGates() {
         Circuit circuitTwo = new Circuit(CircuitIdentifier.CIRCUIT_TWO);
@@ -153,6 +231,9 @@ class CircuitTest {
         circuitTwo.stop();
     }
 
+    /**
+     * Verifies that collecting a pulse collects it, reverses the circuit, and starts a countdown.
+     */
     @Test
     void collectingPulseCollectsItReversesCircuitAndStartsCountdown() {
         GateSquare gate = mock(GateSquare.class);
@@ -165,53 +246,70 @@ class CircuitTest {
 
         verify(pulse, times(1)).collect();
         assertThat(circuit.isReverse()).isTrue();
-        assertThat(circuit.getRemainingSeconds()).isBetween(1, 5);
+        assertThat(circuit.getRemainingSeconds())
+            .isBetween(MIN_REMAINING_SECONDS, PULSE_DURATION_SECONDS);
         verify(gate, times(1)).requestOpen();
         verify(gate, never()).requestClose();
     }
 
+    /**
+     * Verifies that collecting a pulse again restarts the countdown.
+     *
+     * @throws InterruptedException if the test thread is interrupted.
+     */
     @Test
     void collectingPulseAgainRestartsTheCountdown() throws InterruptedException {
         PulseSquare pulse = mock(PulseSquare.class);
         circuit.addPulse(pulse);
 
         circuit.collectPulse(pulse);
-        Thread.sleep(1_200);
+        Thread.sleep(SLEEP_DURATION_LONG);
         int secondsBeforeSecondCollection = circuit.getRemainingSeconds();
 
         circuit.collectPulse(pulse);
         int secondsAfterSecondCollection = circuit.getRemainingSeconds();
 
-        assertThat(secondsBeforeSecondCollection).isBetween(1, 4);
-        assertThat(secondsAfterSecondCollection).isBetween(4, 5);
+        assertThat(secondsBeforeSecondCollection)
+            .isBetween(MIN_REMAINING_SECONDS, MID_REMAINING_SECONDS);
+        assertThat(secondsAfterSecondCollection)
+            .isBetween(MID_REMAINING_SECONDS, PULSE_DURATION_SECONDS);
         assertThat(secondsAfterSecondCollection)
             .isGreaterThan(secondsBeforeSecondCollection);
         assertThat(circuit.isReverse()).isTrue();
         verify(pulse, times(2)).collect();
     }
 
+    /**
+     * Verifies that pausing a pulse preserves remaining time and resuming continues the countdown.
+     *
+     * @throws InterruptedException if the test thread is interrupted.
+     */
     @Test
     void pausingPulsePreservesRemainingTimeAndResumeContinuesCountdown()
-        throws InterruptedException {
+            throws InterruptedException {
         PulseSquare pulse = mock(PulseSquare.class);
         circuit.addPulse(pulse);
         circuit.collectPulse(pulse);
 
         circuit.pause();
         int pausedSeconds = circuit.getRemainingSeconds();
-        assertThat(pausedSeconds).isBetween(1, 5);
+        assertThat(pausedSeconds)
+            .isBetween(MIN_REMAINING_SECONDS, PULSE_DURATION_SECONDS);
 
-        Thread.sleep(1_100);
+        Thread.sleep(SLEEP_DURATION_SHORT);
         assertThat(circuit.getRemainingSeconds()).isEqualTo(pausedSeconds);
 
         circuit.resume();
         assertThat(circuit.isReverse()).isTrue();
-        Thread.sleep(1_200);
+        Thread.sleep(SLEEP_DURATION_LONG);
         assertThat(circuit.getRemainingSeconds())
             .isLessThan(pausedSeconds)
-            .isGreaterThanOrEqualTo(1);
+            .isGreaterThanOrEqualTo(MIN_REMAINING_SECONDS);
     }
 
+    /**
+     * Verifies that stopping the circuit cancels the pulse and restores underlying state.
+     */
     @Test
     void stopCancelsPulseAndRestoresTheUnderlyingCircuitState() {
         GateSquare gate = mock(GateSquare.class);
@@ -228,21 +326,26 @@ class CircuitTest {
         verify(gate, times(1)).requestClose();
     }
 
+    /**
+     * Verifies that a pulse automatically ends after its duration.
+     *
+     * @throws InterruptedException if the test thread is interrupted.
+     */
     @Test
     void pulseAutomaticallyEndsAfterItsFiveSecondDuration()
-        throws InterruptedException {
+            throws InterruptedException {
         GateSquare gate = mock(GateSquare.class);
         PulseSquare pulse = mock(PulseSquare.class);
         circuit.addGate(gate);
         circuit.addPulse(pulse);
 
         circuit.collectPulse(pulse);
-        waitForPulseToEnd(circuit, 6_500);
+        waitForPulseToEnd(circuit, WAIT_TIMEOUT_MS);
 
         assertThat(circuit.isReverse()).isFalse();
         assertThat(circuit.getRemainingSeconds()).isZero();
         verify(gate, times(1)).requestOpen();
-        verify(gate, timeout(500).times(1)).requestClose();
+        verify(gate, timeout(VERIFY_TIMEOUT_MS).times(1)).requestClose();
     }
 
     /**
@@ -254,12 +357,12 @@ class CircuitTest {
      * @throws InterruptedException if the test thread is interrupted
      */
     private void waitForPulseToEnd(Circuit target, long timeoutMillis)
-        throws InterruptedException {
+            throws InterruptedException {
         long deadline = System.nanoTime()
             + TimeUnit.MILLISECONDS.toNanos(timeoutMillis);
 
         while (target.isReverse() && System.nanoTime() < deadline) {
-            Thread.sleep(25);
+            Thread.sleep(POLL_INTERVAL_MS);
         }
 
         assertThat(target.isReverse())

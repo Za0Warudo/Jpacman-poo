@@ -98,17 +98,21 @@ public class PacManUI extends JFrame {
         circuitTimerPanel =
             new CircuitTimerPanel(game.getLevel().getCircuits());
 
-        JPanel headerPanel = new JPanel();
-        headerPanel.setLayout(
-            new BoxLayout(headerPanel, BoxLayout.Y_AXIS)
-        );
+        JPanel headerPanel = createHeaderPanel();
+        addComponents(buttonPanel, headerPanel);
+    }
 
+    private JPanel createHeaderPanel() {
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
         headerPanel.add(scorePanel);
         headerPanel.add(circuitTimerPanel);
+        return headerPanel;
+    }
 
+    private void addComponents(JPanel buttonPanel, JPanel headerPanel) {
         Container contentPanel = getContentPane();
         contentPanel.setLayout(new BorderLayout());
-
         contentPanel.add(headerPanel, BorderLayout.NORTH);
         contentPanel.add(buttonPanel, BorderLayout.SOUTH);
         contentPanel.add(boardPanel, BorderLayout.CENTER);
@@ -121,8 +125,10 @@ public class PacManUI extends JFrame {
      */
     public void start() {
         setVisible(true);
-        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(this::nextFrame, 0, FRAME_INTERVAL, TimeUnit.MILLISECONDS);
+        ScheduledExecutorService service =
+            Executors.newSingleThreadScheduledExecutor();
+        service.scheduleAtFixedRate(this::nextFrame, 0, FRAME_INTERVAL,
+            TimeUnit.MILLISECONDS);
     }
 
     /**

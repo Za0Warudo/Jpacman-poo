@@ -162,12 +162,12 @@ public class BoardFactory {
         if (cIdentifier == CircuitIdentifier.CIRCUIT_ONE) {
             Sprite aSprite = new MarkedSprite(sprites.getAvailablePulseSprite(), Color.RED, "1");
             Sprite cSprite = sprites.getCollectedPulseSprite();
-            return new PulseSquare(aSprite, cSprite , cIdentifier);
+            return new PulseSquare(aSprite, cSprite, cIdentifier);
         }
         if (cIdentifier == CircuitIdentifier.CIRCUIT_TWO) { 
             Sprite aSprite = new MarkedSprite(sprites.getAvailablePulseSprite(), Color.GREEN, "1");
             Sprite cSprite = sprites.getCollectedPulseSprite();
-            return new PulseSquare(aSprite, cSprite , cIdentifier);
+            return new PulseSquare(aSprite, cSprite, cIdentifier);
         }
     
         throw new IllegalArgumentException("Unknown circuit: " + cIdentifier);

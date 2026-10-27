@@ -10,9 +10,14 @@ import javax.swing.Timer;
 import nl.tudelft.jpacman.board.CircuitIdentifier;
 import nl.tudelft.jpacman.level.Circuit;
 
+/**
+ * Displays active pulse countdowns for the level's circuits.
+ */
 public class CircuitTimerPanel extends JPanel {
 
     private static final long serialVersionUID = 1L;
+    private static final int REFRESH_INTERVAL_MILLISECONDS = 200;
+    private static final int SECONDS_PER_MINUTE = 60;
 
     private final JLabel circuitOneLabel = new JLabel(" ");
     private final JLabel circuitTwoLabel = new JLabel(" ");
@@ -22,6 +27,12 @@ public class CircuitTimerPanel extends JPanel {
 
     private final Timer refreshTimer;
 
+    /**
+     * Creates a timer panel for the provided circuits.
+     *
+     * @param circuits
+     *            The circuits whose pulse timers should be displayed.
+     */
     public CircuitTimerPanel(List<Circuit> circuits) {
         super(new GridLayout(1, 2));
 
@@ -40,7 +51,8 @@ public class CircuitTimerPanel extends JPanel {
             }
         }
 
-        refreshTimer = new Timer(200, event -> refresh());
+        refreshTimer = new Timer(REFRESH_INTERVAL_MILLISECONDS,
+            event -> refresh());
         refresh();
         refreshTimer.start();
     }
@@ -60,7 +72,8 @@ public class CircuitTimerPanel extends JPanel {
 
         if (seconds > 0) {
             String time = String.format(
-                "%02d:%02d", seconds / 60, seconds % 60
+                "%02d:%02d", seconds / SECONDS_PER_MINUTE,
+                seconds % SECONDS_PER_MINUTE
             );
 
             label.setText("Inversão (" + number + "): " + time);
@@ -70,6 +83,9 @@ public class CircuitTimerPanel extends JPanel {
         }
     }
 
+    /**
+     * Stops refreshing the panel.
+     */
     public void dispose() {
         refreshTimer.stop();
     }

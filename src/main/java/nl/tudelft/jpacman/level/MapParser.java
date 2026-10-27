@@ -89,8 +89,9 @@ public class MapParser {
         return levelCreator.createLevel(board, ghosts, startPositions, circuits);
     }
 
-    private void makeGrid(char[][] map, int width, int height,
-                          Square[][] grid, List<Ghost> ghosts, List<Square> startPositions, List<Circuit> circuits) {
+    private void makeGrid(char[][] map, int width, int height, Square[][] grid,
+                          List<Ghost> ghosts, List<Square> startPositions,
+                          List<Circuit> circuits) {
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
                 char c = map[x][y];
@@ -122,7 +123,13 @@ public class MapParser {
      *            Character describing the square type.
      */
     protected void addSquare(Square[][] grid, List<Ghost> ghosts,
-                             List<Square> startPositions, List<Circuit> circuits, int x, int y, char c) {
+                             List<Square> startPositions,
+                             List<Circuit> circuits, int x, int y, char c) {
+        if (isCircuitSquare(c)) {
+            grid[x][y] = createCircuitSquare(c, circuits);
+            return;
+        }
+
         switch (c) {
             case ' ':
                 grid[x][y] = boardCreator.createGround();
@@ -135,49 +142,84 @@ public class MapParser {
                 grid[x][y] = pelletSquare;
                 levelCreator.createPellet().occupy(pelletSquare);
                 break;
-            case '1':
-                Square switchOneSquare = boardCreator.createSwitch(CircuitIdentifier.CIRCUIT_ONE);
-                grid[x][y] = switchOneSquare; 
-                circuits.get(0).addSwitch((SwitchSquare) switchOneSquare);
-                break; 
-            case '2': 
-                Square switchTwoSquare = boardCreator.createSwitch(CircuitIdentifier.CIRCUIT_TWO);
-                grid[x][y] = switchTwoSquare; 
-                circuits.get(1).addSwitch((SwitchSquare) switchTwoSquare);
-                break;
-            case 'a': 
-                Square gateOne = boardCreator.createGate(CircuitIdentifier.CIRCUIT_ONE); 
-                grid[x][y] = gateOne; 
-                circuits.get(0).addGate((GateSquare) gateOne);
-                break;
-            case 'b': 
-                Square gateTwo = boardCreator.createGate(CircuitIdentifier.CIRCUIT_TWO); 
-                grid[x][y] = gateTwo; 
-                circuits.get(1).addGate((GateSquare) gateTwo);
-                break;
             case 'G':
                 Square ghostSquare = makeGhostSquare(ghosts, levelCreator.createGhost());
                 grid[x][y] = ghostSquare;
                 break;
-            case '!': 
-                Square pulseOne = boardCreator.createPulse(CircuitIdentifier.CIRCUIT_ONE);
-                grid[x][y] = pulseOne; 
-                circuits.get(0).addPulse((PulseSquare) pulseOne);
-                break; 
-            case '?': 
-                Square pulseTwo = boardCreator.createPulse(CircuitIdentifier.CIRCUIT_TWO);
-                grid[x][y] = pulseTwo; 
-                circuits.get(1).addPulse((PulseSquare) pulseTwo);
-                break;
             case 'P':
-                Square playerSquare = boardCreator.createGround();
-                grid[x][y] = playerSquare;
-                startPositions.add(playerSquare);
+                grid[x][y] = createPlayerSquare(startPositions);
                 break;
             default:
-                throw new PacmanConfigurationException("Invalid character at "
-                    + x + "," + y + ": " + c);
+                throw invalidCharacter(x, y, c);
         }
+    }
+
+    private PacmanConfigurationException invalidCharacter(int x, int y, char c) {
+        return new PacmanConfigurationException("Invalid character at "
+            + x + "," + y + ": " + c);
+    }
+
+    private Square createPlayerSquare(List<Square> startPositions) {
+        Square playerSquare = boardCreator.createGround();
+        startPositions.add(playerSquare);
+        return playerSquare;
+    }
+
+    private boolean isCircuitSquare(char type) {
+        switch (type) {
+            case '1':
+            case '2':
+            case 'a':
+            case 'b':
+            case '!':
+            case '?':
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private Square createCircuitSquare(char type, List<Circuit> circuits) {
+        int circuitIndex = getCircuitIndex(type);
+        CircuitIdentifier identifier = getCircuitIdentifier(circuitIndex);
+        Circuit circuit = circuits.get(circuitIndex);
+
+        switch (type) {
+            case '1':
+            case '2':
+                SwitchSquare switchSquare =
+                    (SwitchSquare) boardCreator.createSwitch(identifier);
+                circuit.addSwitch(switchSquare);
+                return switchSquare;
+            case 'a':
+            case 'b':
+                GateSquare gateSquare =
+                    (GateSquare) boardCreator.createGate(identifier);
+                circuit.addGate(gateSquare);
+                return gateSquare;
+            case '!':
+            case '?':
+                PulseSquare pulseSquare =
+                    (PulseSquare) boardCreator.createPulse(identifier);
+                circuit.addPulse(pulseSquare);
+                return pulseSquare;
+            default:
+                throw new IllegalArgumentException("Unsupported circuit square: " + type);
+        }
+    }
+
+    private int getCircuitIndex(char type) {
+        if (type == '1' || type == 'a' || type == '!') {
+            return 0;
+        }
+        return 1;
+    }
+
+    private CircuitIdentifier getCircuitIdentifier(int circuitIndex) {
+        if (circuitIndex == 0) {
+            return CircuitIdentifier.CIRCUIT_ONE;
+        }
+        return CircuitIdentifier.CIRCUIT_TWO;
     }
 
     /**

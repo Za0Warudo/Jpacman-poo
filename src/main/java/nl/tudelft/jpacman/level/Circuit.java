@@ -3,7 +3,6 @@ package nl.tudelft.jpacman.level;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -13,9 +12,23 @@ import nl.tudelft.jpacman.board.models.GateSquare;
 import nl.tudelft.jpacman.board.models.PulseSquare;
 import nl.tudelft.jpacman.board.models.SwitchSquare;
 
+/**
+ * A circuit is a set of gate and switchs that can operate this gates.
+ */
 public class Circuit {
 
-    private static HashMap<CircuitState, CircuitState> reverseMap = new HashMap<>(Map.of(CircuitState.OPEN, CircuitState.CLOSED, CircuitState.CLOSED, CircuitState.OPEN)); 
+    private static final long MILLISECONDS_PER_SECOND = 1000L;
+    private static final int PULSE_DURATION_SECONDS = 5;
+
+    /**
+     * Reverse state map.
+     */
+    private static final Map<CircuitState, CircuitState> REVERSE_MAP =
+        Map.of(CircuitState.OPEN,
+            CircuitState.CLOSED,
+            CircuitState.CLOSED,
+            CircuitState.OPEN
+        );
 
     /**
     * The circuit identifier. 
@@ -48,7 +61,8 @@ public class Circuit {
     private boolean isReverse; 
 
 
-    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(); 
+    private final ScheduledExecutorService
+        scheduler = Executors.newSingleThreadScheduledExecutor();
     
     private ScheduledFuture<?> timer; 
     
@@ -86,7 +100,9 @@ public class Circuit {
     }
 
     private CircuitState getState() {
-        if (isReverse) return reverseMap.get(this.state); 
+        if (isReverse) {
+            return REVERSE_MAP.get(this.state);
+        }
         return this.state; 
     }
     
@@ -97,23 +113,33 @@ public class Circuit {
         return this.identifier; 
     }
 
+    /**
+     * Indicates whether this circuit is currently reversed.
+     *
+     * @return {@code true} when the circuit is reversed.
+     */
     public boolean isReverse() {
         return this.isReverse;
     }
 
     /**
-     * @return If the circuit is a valid circuit (i.e it is a null circuit or has at least a gate and a switch). 
+     * Checks whether this circuit is empty or has at least one gate and switch.
+     *
+     * @return {@code true} if the circuit is empty or has at least one gate and
+     *         switch.
      */
     public boolean isValid() {
         int gatesSize = this.gates.size(); 
         int switchsSize = this.switchs.size(); 
         int pulsesSize = this.pulses.size(); 
-        return (gatesSize == 0 && switchsSize == 0 && pulsesSize == 0) || (gatesSize > 0 && switchsSize > 0);  
+        return (gatesSize == 0 && switchsSize == 0 && pulsesSize == 0)
+            || (gatesSize > 0 && switchsSize > 0);
     } 
 
     /**
-     * Add the given gate into the circuit. 
-     * @param gate 
+     * Adds the given gate to the circuit.
+     *
+     * @param gateSquare
      *          The gate to add into the circuit. 
      */
     public void addGate(GateSquare gateSquare) {
@@ -121,14 +147,21 @@ public class Circuit {
     }
 
     /**
-     * Add the given switch into the circuit. 
-     * @param switch
+     * Adds the given switch to the circuit.
+     *
+     * @param switchSquare
      *          The switch to add into the circuit. 
      */
     public void addSwitch(SwitchSquare switchSquare) {
         this.switchs.add(switchSquare); 
     }
 
+    /**
+     * Adds the given pulse to the circuit.
+     *
+     * @param pulse
+     *            The pulse to add.
+     */
     public void addPulse(PulseSquare pulse) { 
         this.pulses.add(pulse);
     }
@@ -138,7 +171,7 @@ public class Circuit {
             timer.cancel(false); 
         }
 
-        this.remainingMs = seconds * 1000L; 
+        this.remainingMs = seconds * MILLISECONDS_PER_SECOND;
         this.endTimeMs = System.currentTimeMillis() + this.remainingMs; 
         this.isPaused = false; 
 
@@ -152,6 +185,9 @@ public class Circuit {
         this.remainingMs = 0; 
     }
 
+    /**
+     * Pauses the pulse timer, retaining its remaining duration.
+     */
     public void pause() { 
         if (this.timer != null && !this.timer.isDone()) {
             this.remainingMs = Math.max(0, endTimeMs - System.currentTimeMillis());
@@ -160,6 +196,9 @@ public class Circuit {
         } 
     }
 
+    /**
+     * Resumes the pulse timer if it was paused.
+     */
     public void resume() {
         if (isReverse && isPaused && remainingMs > 0) {
             this.endTimeMs = System.currentTimeMillis() + this.remainingMs;
@@ -168,6 +207,9 @@ public class Circuit {
         }
     }
 
+    /**
+     * Stops the pulse timer and restores the normal circuit state.
+     */
     public void stop() {
         if (timer != null) {
             timer.cancel(false);
@@ -202,38 +244,48 @@ public class Circuit {
      * Call for collect pulse. 
      */
     private void requestCollectPulse() {
-        if (!isReverse) reverse();
-        setTimer(5);
+        if (!isReverse) {
+            reverse();
+        }
+        setTimer(PULSE_DURATION_SECONDS);
     }
     
     /**
-     * toggle circuit state and update gates in the circuit. 
+     * Toggles the circuit state and updates its gates.
      */
     public void toggle() {
-        if (this.state == CircuitState.OPEN) 
+        if (this.state == CircuitState.OPEN) {
             this.state = CircuitState.CLOSED;
-        else 
+        } else {
             this.state = CircuitState.OPEN; 
+        }
         update();
     }
 
+    /**
+     * Collects a pulse and reverses the circuit for its duration.
+     *
+     * @param pulse
+     *            The pulse collected from this circuit.
+     */
     public void collectPulse(PulseSquare pulse) {
         assert pulses.contains(pulse); 
         pulse.collect();
-        requestCollectPulse();  
+        requestCollectPulse();
     }
 
     /**
-     * Updates circuit gates for the current gate state.  
+     * Updates circuit gates for the current gate state.
      */
     private void update() { 
         if (getState() == CircuitState.OPEN) { 
-            for (GateSquare gate: this.gates) 
-                gate.requestOpen();  
-        }
-        else {
-            for (GateSquare gate: this.gates)
+            for (GateSquare gate: this.gates) {
+                gate.requestOpen();
+            }
+        } else {
+            for (GateSquare gate: this.gates) {
                 gate.requestClose();
+            }
         }
     }
 
@@ -261,7 +313,8 @@ public class Circuit {
             return 0;
         }
 
-        return (int) ((remaining + 999L) / 1000L);
+        return (int) ((remaining + MILLISECONDS_PER_SECOND - 1)
+            / MILLISECONDS_PER_SECOND);
     }
 
     /**

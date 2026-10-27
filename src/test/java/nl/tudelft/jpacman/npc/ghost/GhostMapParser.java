@@ -36,7 +36,8 @@ public final class GhostMapParser extends MapParser {
     //You should add extra cases for ghosts you need.
     @Override
     protected void addSquare(Square[][] grid, List<Ghost> ghosts,
-                             List<Square> startPositions, List<Circuit> circuits, int x, int y, char c) {
+                             List<Square> startPositions, List<Circuit> circuits,
+                             int x, int y, char c) {
         switch (c) {
             case 'C':
                 grid[x][y] = makeGhostSquare(ghosts, ghostFactory.createClyde());

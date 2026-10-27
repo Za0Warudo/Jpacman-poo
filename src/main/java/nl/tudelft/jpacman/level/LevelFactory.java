@@ -80,9 +80,13 @@ public class LevelFactory {
      *            A list of all ghosts on the board.
      * @param startPositions
      *            A list of squares from which players may start the game.
+     * @param circuits
+     *            The circuits on the level.
      * @return A new level for the board.
      */
-    public Level createLevel(Board board, List<Ghost> ghosts, List<Square> startPositions, List<Circuit> circuits) {
+    public Level createLevel(Board board, List<Ghost> ghosts,
+                             List<Square> startPositions,
+                             List<Circuit> circuits) {
 
         // We'll adopt the simple collision map for now.
         CollisionMap collisionMap = new PlayerCollisions(pointCalculator);

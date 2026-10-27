@@ -78,7 +78,7 @@ public class Level {
     private final CollisionMap collisions;
 
     /**
-     * The circuit list
+     * The circuit list.
      */
     private final List<Circuit> circuits;
 
@@ -98,26 +98,18 @@ public class Level {
      *            The squares on which players start on this board.
      * @param collisionMap
      *            The collection of collisions that should be handled.
+     * @param circuits
+     *            The circuits belonging to this level.
      */
     public Level(Board board, List<Ghost> ghosts, List<Square> startPositions,
                  CollisionMap collisionMap, List<Circuit> circuits) {
         assert board != null;
         assert ghosts != null;
         assert startPositions != null;
-        assert circuits != null; 
+        assert circuits != null;
         assert circuits.size() == 2;
-        
-        Circuit circuitOne = circuits.get(0); 
-        Circuit circuitTwo = circuits.get(1);
+        validateCircuits(circuits);
 
-        assert circuitOne.getIdentifier() == CircuitIdentifier.CIRCUIT_ONE; 
-        assert circuitTwo.getIdentifier() == CircuitIdentifier.CIRCUIT_TWO; 
-
-        if (!circuitOne.isValid() || !circuitTwo.isValid()) {
-            throw new IllegalArgumentException(
-                "Each circuit must have at least one gate and one switch.");
-        }
-        
         this.board = board;
         this.inProgress = false;
         this.npcs = new HashMap<>();
@@ -130,6 +122,19 @@ public class Level {
         this.collisions = collisionMap;
         this.circuits = circuits; 
         this.observers = new HashSet<>();
+    }
+
+    private void validateCircuits(List<Circuit> levelCircuits) {
+        Circuit circuitOne = levelCircuits.get(0);
+        Circuit circuitTwo = levelCircuits.get(1);
+
+        assert circuitOne.getIdentifier() == CircuitIdentifier.CIRCUIT_ONE;
+        assert circuitTwo.getIdentifier() == CircuitIdentifier.CIRCUIT_TWO;
+
+        if (!circuitOne.isValid() || !circuitTwo.isValid()) {
+            throw new IllegalArgumentException(
+                "Each circuit must have at least one gate and one switch.");
+        }
     }
 
     /**
@@ -211,36 +216,45 @@ public class Level {
         }
 
         synchronized (moveLock) {
-            unit.setDirection(direction);
-            Square location = unit.getSquare();
-            Square destination = location.getSquareAt(direction);
-
-            if (destination.isAccessibleTo(unit)) {
-                List<Unit> occupants = destination.getOccupants();
-                unit.occupy(destination);
-                if (location instanceof GateSquare) {
-                    ((GateSquare)location).occupantLeft(); 
-                }
-
-                if (unit instanceof Player && destination instanceof SwitchSquare) {
-                   activateSwitch((SwitchSquare) destination);
-                }
-
-                if (unit instanceof Player && destination instanceof PulseSquare && ((PulseSquare) destination).isAvailable()) {
-                    collectPulse(((PulseSquare) destination)); 
-
-                }
-
-                for (Unit occupant : occupants) {
-                    collisions.collide(unit, occupant);
-                }
-            }
+            moveUnit(unit, direction);
             updateObservers();
+        }
+    }
+
+    private void moveUnit(Unit unit, Direction direction) {
+        unit.setDirection(direction);
+        Square location = unit.getSquare();
+        Square destination = location.getSquareAt(direction);
+
+        if (!destination.isAccessibleTo(unit)) {
+            return;
+        }
+
+        List<Unit> occupants = destination.getOccupants();
+        unit.occupy(destination);
+        if (location instanceof GateSquare) {
+            ((GateSquare) location).occupantLeft();
+        }
+
+        if (unit instanceof Player && destination instanceof SwitchSquare) {
+            activateSwitch((SwitchSquare) destination);
+        }
+
+        if (unit instanceof Player
+            && destination instanceof PulseSquare
+            && ((PulseSquare) destination).isAvailable()) {
+            collectPulse((PulseSquare) destination);
+        }
+
+        for (Unit occupant : occupants) {
+            collisions.collide(unit, occupant);
         }
     }
     
     private Circuit getCircuit(CircuitIdentifier cidIdentifier) { 
-        if (cidIdentifier == CircuitIdentifier.CIRCUIT_ONE) return circuits.get(0); 
+        if (cidIdentifier == CircuitIdentifier.CIRCUIT_ONE) {
+            return circuits.get(0);
+        }
         return circuits.get(1); 
     }
 
@@ -300,8 +314,9 @@ public class Level {
             }
             stopNPCs();
             for (Circuit circuit: circuits) {
-                if (circuit.isReverse()) 
-                        circuit.pause();
+                if (circuit.isReverse()) {
+                    circuit.pause();
+                }
             }
             inProgress = false;
         }

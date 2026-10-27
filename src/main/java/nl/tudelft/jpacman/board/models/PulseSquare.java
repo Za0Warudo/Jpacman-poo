@@ -41,7 +41,7 @@ public class PulseSquare extends Square {
         this.collectedBackground = cSprite; 
         this.identifier = cIdentifier; 
         this.isAvailable = true;  
-       }
+    }
 
     /**
      * @return If the circuit is available. 
@@ -61,7 +61,7 @@ public class PulseSquare extends Square {
      * Collects an available pulse.  
      */
     public void collect() { 
-        assert this.isAvailable == true; 
+        assert this.isAvailable; 
         this.isAvailable = false; 
     }
 
@@ -72,7 +72,9 @@ public class PulseSquare extends Square {
 
     @Override
     public Sprite getSprite() {
-        if (this.isAvailable) return this.availableBackground; 
+        if (this.isAvailable) { 
+            return this.availableBackground;
+        } 
         return this.collectedBackground;
     }
 }
